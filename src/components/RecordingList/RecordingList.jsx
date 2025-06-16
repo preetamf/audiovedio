@@ -2,6 +2,7 @@ import React from 'react';
 import { useRecordings } from '../../contexts/RecordingsContext';
 import { formatTime } from '../../utils/recordingUtils';
 import './RecordingList.css';
+import { FaMicrophone, FaVideo } from 'react-icons/fa';
 
 const RecordingList = () => {
     const { recordings, dispatch } = useRecordings();
@@ -42,10 +43,11 @@ const RecordingList = () => {
                         )}
                         <div className="recording-info">
                             <span className="recording-type">
-                                {recording.type === 'audio' ? '🎤 Audio' : '🎥 Video'}
+                                {recording.type === 'audio' ? <FaMicrophone style={{ marginRight: 4 }} /> : <FaVideo style={{ marginRight: 4 }} />}
+                                {recording.type === 'audio' ? 'Audio' : 'Video'}
                             </span>
                             <span className="recording-duration">
-                                {formatTime(recording.duration)}
+                                {formatTime(recording.duration || 0)}
                             </span>
                             <span className="recording-date">
                                 {new Date(recording.timestamp).toLocaleString()}

@@ -47,7 +47,7 @@ const AudioRecorder = () => {
             </div>
 
             <div className="controls">
-                {status === 'idle' && (
+                {(status === 'idle' || status === 'stopped') && (
                     <button onClick={startRecording} className="record-btn">
                         <FaRecordVinyl style={{ marginRight: 8 }} /> Start Recording
                     </button>

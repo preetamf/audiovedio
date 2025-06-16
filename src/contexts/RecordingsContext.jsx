@@ -74,6 +74,14 @@ const recordingsReducer = (state, action) => {
                 recordings: state.recordings.filter((_, index) => index !== action.payload),
             };
 
+        case 'RESET_TO_IDLE':
+            return {
+                ...state,
+                status: RECORDING_STATUS.IDLE,
+                duration: 0,
+                currentRecording: null,
+            };
+
         default:
             return state;
     }

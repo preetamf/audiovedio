@@ -98,6 +98,8 @@ const useRecorder = () => {
                 dispatch({ type: 'STOP_RECORDING', payload: recording });
                 clearInterval(timerRef.current);
                 timerRef.current = null;
+                setTimeout(() => dispatch({ type: 'SET_RECORDING_TYPE', payload: recordingType }), 100);
+                dispatch({ type: 'RESET_TO_IDLE' });
             };
 
             mediaRecorder.start();
@@ -122,6 +124,10 @@ const useRecorder = () => {
             console.log('Stopping recording...');
             mediaRecorderRef.current.stop();
             // Tracks will be stopped in cleanup
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
         }
     }, [status]);
 
@@ -131,6 +137,10 @@ const useRecorder = () => {
             console.log('Pausing recording...');
             mediaRecorderRef.current.pause();
             dispatch({ type: 'PAUSE_RECORDING' });
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
         }
     }, [status, dispatch]);
 
@@ -140,8 +150,14 @@ const useRecorder = () => {
             console.log('Resuming recording...');
             mediaRecorderRef.current.resume();
             dispatch({ type: 'RESUME_RECORDING' });
+            // Continue timer from paused duration
+            startTimeRef.current = Date.now() - duration * 1000;
+            timerRef.current = setInterval(() => {
+                const newDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                dispatch({ type: 'UPDATE_DURATION', payload: newDuration });
+            }, 1000);
         }
-    }, [status, dispatch]);
+    }, [status, dispatch, duration]);
 
     // Download recording
     const downloadRecording = useCallback((recording) => {
