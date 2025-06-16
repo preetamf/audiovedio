@@ -82,7 +82,7 @@ const RecordingList = () => {
                 {recordings.map((recording, index) => (
                     <div key={recording.id} className="recording-item">
                         <div className="recording-preview-container">
-                            {recording.type === 'video' ? (
+                            {recording.type === 'video' && recording.url ? (
                                 <video
                                     ref={el => videoRefs.current[index] = el}
                                     src={recording.url}
@@ -90,7 +90,7 @@ const RecordingList = () => {
                                     onEnded={handleEnded}
                                     controls={false}
                                 />
-                            ) : (
+                            ) : recording.type === 'audio' && recording.url ? (
                                 <audio
                                     ref={el => audioRefs.current[index] = el}
                                     src={recording.url}
@@ -98,7 +98,7 @@ const RecordingList = () => {
                                     onEnded={handleEnded}
                                     controls={false}
                                 />
-                            )}
+                            ) : null}
                             <button
                                 className="replay-btn"
                                 onClick={() => handleReplay(index, recording.type)}

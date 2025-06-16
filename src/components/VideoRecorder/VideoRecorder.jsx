@@ -46,16 +46,6 @@ const VideoRecorder = () => {
         }
     }, [status]);
 
-    // Debug: print stream control button state
-    console.log('[VideoRecorder] Stream control btn:', {
-        status,
-        isCameraEnabled,
-        isMicEnabled,
-        camPref,
-        micPref,
-        btnEnabled: true,
-    });
-
     const handleMicToggle = () => {
         if (status === 'idle' || status === 'stopped') {
             setMicPref((prev) => !prev);

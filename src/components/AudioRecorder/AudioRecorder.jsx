@@ -34,14 +34,6 @@ const AudioRecorder = () => {
         }
     }, [status]);
 
-    // Debug: print stream control button state
-    console.log('[AudioRecorder] Stream control btn:', {
-        status,
-        isMicEnabled,
-        micPref,
-        btnEnabled: true,
-    });
-
     const handleMicToggle = () => {
         if (status === 'idle' || status === 'stopped') {
             setMicPref((prev) => !prev);

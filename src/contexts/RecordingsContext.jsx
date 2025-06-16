@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { RECORDING_TYPES, RECORDING_STATUS, ERROR_TYPES } from '../types';
+import { createRecordingObject } from '../utils/recordingUtils';
 
 const RecordingsContext = createContext();
 
@@ -95,7 +96,12 @@ export const RecordingsProvider = ({ children }) => {
         const savedRecordings = localStorage.getItem('recordings');
         if (savedRecordings) {
             const parsedRecordings = JSON.parse(savedRecordings);
-            parsedRecordings.forEach((recording) => {
+            parsedRecordings.forEach((rec) => {
+                // Reconstruct the recording object from base64
+                const recording = createRecordingObject(null, rec.type, rec.base64);
+                recording.id = rec.id;
+                recording.timestamp = rec.timestamp;
+                recording.duration = rec.duration;
                 dispatch({ type: 'STOP_RECORDING', payload: recording });
             });
         }
@@ -103,7 +109,15 @@ export const RecordingsProvider = ({ children }) => {
 
     // Save recordings to localStorage when they change
     useEffect(() => {
-        localStorage.setItem('recordings', JSON.stringify(state.recordings));
+        // Only store minimal info: id, type, base64, timestamp, duration
+        const toStore = state.recordings.map(rec => ({
+            id: rec.id,
+            type: rec.type,
+            base64: rec.base64,
+            timestamp: rec.timestamp,
+            duration: rec.duration,
+        }));
+        localStorage.setItem('recordings', JSON.stringify(toStore));
     }, [state.recordings]);
 
     const value = {

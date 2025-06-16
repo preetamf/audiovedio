@@ -32,14 +32,47 @@ export const handleMediaError = (error) => {
     };
 };
 
-export const createRecordingObject = (blob, type) => ({
-    id: Date.now(),
-    type,
-    blob,
-    url: URL.createObjectURL(blob),
-    timestamp: new Date().toISOString(),
-    duration: 0, // This will be updated when the recording is stopped
-});
+// Convert Blob to base64 string
+export const blobToBase64 = (blob) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
+
+// Convert base64 string to Blob
+export const base64ToBlob = (base64, type) => {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type });
+};
+
+// Update createRecordingObject to accept base64 and reconstruct Blob/URL
+export const createRecordingObject = (blob, type, base64) => {
+    let recordingBlob = blob;
+    let url = '';
+    if (base64) {
+        recordingBlob = base64ToBlob(base64, type === 'audio' ? 'audio/webm' : 'video/webm');
+        url = URL.createObjectURL(recordingBlob);
+    } else if (blob) {
+        url = URL.createObjectURL(blob);
+    }
+    return {
+        id: Date.now(),
+        type,
+        blob: recordingBlob,
+        base64: base64 || null,
+        url,
+        timestamp: new Date().toISOString(),
+        duration: 0, // This will be updated when the recording is stopped
+    };
+};
 
 export const checkMediaSupport = () => {
     const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);

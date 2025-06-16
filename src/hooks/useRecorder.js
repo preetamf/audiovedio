@@ -5,6 +5,7 @@ import {
     handleMediaError,
     createRecordingObject,
     checkMediaSupport,
+    blobToBase64,
 } from '../utils/recordingUtils';
 
 const useRecorder = () => {
@@ -88,12 +89,14 @@ const useRecorder = () => {
                 }
             };
 
-            mediaRecorder.onstop = () => {
+            mediaRecorder.onstop = async () => {
                 console.log('Recording stopped, processing data...');
                 const blob = new Blob(chunksRef.current, {
                     type: recordingType === 'audio' ? 'audio/webm' : 'video/webm',
                 });
-                const recording = createRecordingObject(blob, recordingType);
+                // Convert blob to base64 for storage
+                const base64 = await blobToBase64(blob);
+                const recording = createRecordingObject(blob, recordingType, base64);
                 // Get the latest duration from the context or timer
                 const finalDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
                 recording.duration = finalDuration;
