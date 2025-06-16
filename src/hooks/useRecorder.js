@@ -94,7 +94,9 @@ const useRecorder = () => {
                     type: recordingType === 'audio' ? 'audio/webm' : 'video/webm',
                 });
                 const recording = createRecordingObject(blob, recordingType);
-                recording.duration = duration;
+                // Get the latest duration from the context or timer
+                const finalDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                recording.duration = finalDuration;
                 dispatch({ type: 'STOP_RECORDING', payload: recording });
                 clearInterval(timerRef.current);
                 timerRef.current = null;
