@@ -46,10 +46,13 @@
   height: 20%;
   background-color: #646cff;
   border-radius: 2px;
+}
+
+.visualizer-bar.animate {
   animation: visualizer 1s ease-in-out infinite;
 }
 
-.visualizer-bar:nth-child(odd) {
+.visualizer-bar.animate:nth-child(odd) {
   animation-delay: 0.5s;
 }
 

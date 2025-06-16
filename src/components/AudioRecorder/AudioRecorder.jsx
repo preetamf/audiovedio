@@ -65,7 +65,7 @@ const AudioRecorder = () => {
                 <div className="audio-visualizer">
                     <div className="visualizer-bars">
                         {Array.from({ length: 20 }).map((_, i) => (
-                            <div key={i} className="visualizer-bar" />
+                            <div key={i} className={`visualizer-bar${status === 'recording' ? ' animate' : ''}`} />
                         ))}
                     </div>
                 </div>

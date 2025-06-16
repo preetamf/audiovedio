@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useRecordings } from '../../contexts/RecordingsContext';
 import { formatTime } from '../../utils/recordingUtils';
 import './RecordingList.css';
-import { FaMicrophone, FaVideo } from 'react-icons/fa';
+import { FaMicrophone, FaVideo, FaPlay, FaPause } from 'react-icons/fa';
 
 const RecordingList = () => {
     const { recordings, dispatch } = useRecordings();
+    const [playingIndex, setPlayingIndex] = useState(null);
+    const audioRefs = useRef([]);
+    const videoRefs = useRef([]);
 
     const handleDelete = (index) => {
         dispatch({ type: 'DELETE_RECORDING', payload: index });
@@ -22,6 +25,41 @@ const RecordingList = () => {
         URL.revokeObjectURL(url);
     };
 
+    const handleReplay = (index, type) => {
+        if (playingIndex === index) {
+            // Pause if already playing
+            if (type === 'audio') {
+                audioRefs.current[index].pause();
+            } else {
+                videoRefs.current[index].pause();
+            }
+            setPlayingIndex(null);
+        } else {
+            // Pause any other playing
+            if (playingIndex !== null) {
+                if (recordings[playingIndex].type === 'audio') {
+                    audioRefs.current[playingIndex]?.pause();
+                    audioRefs.current[playingIndex].currentTime = 0;
+                } else {
+                    videoRefs.current[playingIndex]?.pause();
+                    videoRefs.current[playingIndex].currentTime = 0;
+                }
+            }
+            setPlayingIndex(index);
+            if (type === 'audio') {
+                audioRefs.current[index].currentTime = 0;
+                audioRefs.current[index].play();
+            } else {
+                videoRefs.current[index].currentTime = 0;
+                videoRefs.current[index].play();
+            }
+        }
+    };
+
+    const handleEnded = () => {
+        setPlayingIndex(null);
+    };
+
     if (recordings.length === 0) {
         return (
             <div className="recording-list empty">
@@ -36,11 +74,32 @@ const RecordingList = () => {
             <div className="recordings-grid">
                 {recordings.map((recording, index) => (
                     <div key={recording.id} className="recording-item">
-                        {recording.type === 'video' ? (
-                            <video src={recording.url} controls className="recording-preview" />
-                        ) : (
-                            <audio src={recording.url} controls className="recording-preview" />
-                        )}
+                        <div className="recording-preview-container">
+                            {recording.type === 'video' ? (
+                                <video
+                                    ref={el => videoRefs.current[index] = el}
+                                    src={recording.url}
+                                    className="recording-preview"
+                                    onEnded={handleEnded}
+                                    controls={false}
+                                />
+                            ) : (
+                                <audio
+                                    ref={el => audioRefs.current[index] = el}
+                                    src={recording.url}
+                                    className="recording-preview"
+                                    onEnded={handleEnded}
+                                    controls={false}
+                                />
+                            )}
+                            <button
+                                className="replay-btn"
+                                onClick={() => handleReplay(index, recording.type)}
+                                title={playingIndex === index ? 'Pause' : 'Replay'}
+                            >
+                                {playingIndex === index ? <FaPause /> : <FaPlay />}
+                            </button>
+                        </div>
                         <div className="recording-info">
                             <span className="recording-type">
                                 {recording.type === 'audio' ? <FaMicrophone style={{ marginRight: 4 }} /> : <FaVideo style={{ marginRight: 4 }} />}
