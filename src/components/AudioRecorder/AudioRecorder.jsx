@@ -18,6 +18,8 @@ const AudioRecorder = () => {
     const { dispatch } = useRecordings();
     // Local state for mic toggle in idle
     const [micPref, setMicPref] = useState(true);
+    const [permission, setPermission] = useState(null); // null | 'granted' | 'denied'
+    const [permissionMsg, setPermissionMsg] = useState('');
 
     useEffect(() => {
         return () => {
@@ -45,6 +47,19 @@ const AudioRecorder = () => {
             setMicPref((prev) => !prev);
         } else {
             toggleMicrophone();
+        }
+    };
+
+    const handlePrepare = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setPermission('granted');
+            setPermissionMsg('Microphone access granted!');
+            // Immediately stop tracks so we don't keep the stream open
+            stream.getTracks().forEach(track => track.stop());
+        } catch {
+            setPermission('denied');
+            setPermissionMsg('Microphone access denied. Please allow access to record audio.');
         }
     };
 
@@ -83,9 +98,14 @@ const AudioRecorder = () => {
 
             <div className="controls">
                 {(status === 'idle' || status === 'stopped') && (
-                    <button onClick={startRecording} className="record-btn">
-                        <FaRecordVinyl style={{ marginRight: 8 }} /> Start Recording
-                    </button>
+                    <>
+                        <button onClick={handlePrepare} className="prepare-btn">
+                            Prepare (Request Mic Permission)
+                        </button>
+                        <button onClick={startRecording} className="record-btn" disabled={permission !== 'granted'}>
+                            <FaRecordVinyl style={{ marginRight: 8 }} /> Start Recording
+                        </button>
+                    </>
                 )}
 
                 {status === 'recording' && (
@@ -110,6 +130,10 @@ const AudioRecorder = () => {
                     </div>
                 )}
             </div>
+
+            {permissionMsg && (
+                <div className={`permission-msg ${permission}`}>{permissionMsg}</div>
+            )}
 
             {(status === 'recording' || status === 'paused') && (
                 <div className="recording-info">

@@ -12,6 +12,9 @@ const RecordingList = () => {
 
     const handleDelete = (index) => {
         dispatch({ type: 'DELETE_RECORDING', payload: index });
+        if (playingIndex === index) {
+            setPlayingIndex(null);
+        }
     };
 
     const handleDownload = (recording) => {
@@ -29,14 +32,18 @@ const RecordingList = () => {
         if (playingIndex === index) {
             // Pause if already playing
             if (type === 'audio') {
-                audioRefs.current[index].pause();
+                audioRefs.current[index]?.pause();
             } else {
-                videoRefs.current[index].pause();
+                videoRefs.current[index]?.pause();
             }
             setPlayingIndex(null);
         } else {
             // Pause any other playing
-            if (playingIndex !== null) {
+            if (
+                playingIndex !== null &&
+                recordings[playingIndex] &&
+                (audioRefs.current[playingIndex] || videoRefs.current[playingIndex])
+            ) {
                 if (recordings[playingIndex].type === 'audio') {
                     audioRefs.current[playingIndex]?.pause();
                     audioRefs.current[playingIndex].currentTime = 0;
