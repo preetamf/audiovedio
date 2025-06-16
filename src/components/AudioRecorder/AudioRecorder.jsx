@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import useRecorder from '../../hooks/useRecorder';
+import { useRecordings } from '../../contexts/RecordingsContext';
 import './AudioRecorder.css';
 import { FaMicrophone, FaMicrophoneSlash, FaPlay, FaPause, FaStop, FaRecordVinyl } from 'react-icons/fa';
 
@@ -14,14 +15,47 @@ const AudioRecorder = () => {
         toggleMicrophone,
         isMicEnabled
     } = useRecorder();
+    const { dispatch } = useRecordings();
+    // Local state for mic toggle in idle
+    const [micPref, setMicPref] = useState(true);
 
-    console.log('[AudioRecorder] Rendered. Status:', status);
+    useEffect(() => {
+        return () => {
+            dispatch({ type: 'RESET_TO_IDLE' });
+        };
+    }, [dispatch]);
+
+    // When recording starts, apply the user's mic preference
+    useEffect(() => {
+        if (status === 'recording' && isMicEnabled !== micPref) {
+            toggleMicrophone();
+        }
+    }, [status]);
+
+    // Debug: print stream control button state
+    console.log('[AudioRecorder] Stream control btn:', {
+        status,
+        isMicEnabled,
+        micPref,
+        btnEnabled: true,
+    });
+
+    const handleMicToggle = () => {
+        if (status === 'idle' || status === 'stopped') {
+            setMicPref((prev) => !prev);
+        } else {
+            toggleMicrophone();
+        }
+    };
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
+
+    // Use micPref for icon in idle/stopped, isMicEnabled otherwise
+    const micOn = (status === 'idle' || status === 'stopped') ? micPref : isMicEnabled;
 
     return (
         <div className="audio-recorder">
@@ -37,11 +71,12 @@ const AudioRecorder = () => {
                 </div>
                 <div className="stream-controls">
                     <button
-                        onClick={toggleMicrophone}
-                        className={`stream-control-btn ${isMicEnabled ? 'active' : 'inactive'}`}
-                        title={isMicEnabled ? 'Disable Microphone' : 'Enable Microphone'}
+                        onClick={handleMicToggle}
+                        className={`stream-control-btn ${micOn ? 'active' : 'inactive'}`}
+                        title={micOn ? 'Disable Microphone' : 'Enable Microphone'}
+                        disabled={false}
                     >
-                        {isMicEnabled ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
+                        {micOn ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
                     </button>
                 </div>
             </div>

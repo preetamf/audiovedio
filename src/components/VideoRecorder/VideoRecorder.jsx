@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import useRecorder from '../../hooks/useRecorder';
+import { useRecordings } from '../../contexts/RecordingsContext';
 import './VideoRecorder.css';
 import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaPlay, FaPause, FaStop, FaRecordVinyl } from 'react-icons/fa';
 
@@ -12,21 +13,67 @@ const VideoRecorder = () => {
         stopRecording,
         pauseRecording,
         resumeRecording,
-        downloadRecording,
         toggleCamera,
         toggleMicrophone,
         isCameraEnabled,
         isMicEnabled,
         stream
     } = useRecorder();
+    const { dispatch } = useRecordings();
+    // Local state for pre-toggle in idle
+    const [micPref, setMicPref] = useState(true);
+    const [camPref, setCamPref] = useState(true);
 
     console.log('[VideoRecorder] Rendered. Status:', status);
+
+    useEffect(() => {
+        return () => {
+            dispatch({ type: 'RESET_TO_IDLE' });
+        };
+    }, [dispatch]);
 
     useEffect(() => {
         if (stream && videoRef.current) {
             videoRef.current.srcObject = stream;
         }
     }, [stream]);
+
+    // When recording starts, apply the user's mic/cam preference
+    useEffect(() => {
+        if (status === 'recording') {
+            if (isMicEnabled !== micPref) toggleMicrophone();
+            if (isCameraEnabled !== camPref) toggleCamera();
+        }
+    }, [status]);
+
+    // Debug: print stream control button state
+    console.log('[VideoRecorder] Stream control btn:', {
+        status,
+        isCameraEnabled,
+        isMicEnabled,
+        camPref,
+        micPref,
+        btnEnabled: true,
+    });
+
+    const handleMicToggle = () => {
+        if (status === 'idle' || status === 'stopped') {
+            setMicPref((prev) => !prev);
+        } else {
+            toggleMicrophone();
+        }
+    };
+    const handleCameraToggle = () => {
+        if (status === 'idle' || status === 'stopped') {
+            setCamPref((prev) => !prev);
+        } else {
+            toggleCamera();
+        }
+    };
+
+    // Use pref for icon in idle/stopped, actual state otherwise
+    const micOn = (status === 'idle' || status === 'stopped') ? micPref : isMicEnabled;
+    const camOn = (status === 'idle' || status === 'stopped') ? camPref : isCameraEnabled;
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -48,18 +95,20 @@ const VideoRecorder = () => {
                 />
                 <div className="stream-controls">
                     <button
-                        onClick={toggleCamera}
-                        className={`stream-control-btn ${isCameraEnabled ? 'active' : 'inactive'}`}
-                        title={isCameraEnabled ? 'Disable Camera' : 'Enable Camera'}
+                        onClick={handleCameraToggle}
+                        className={`stream-control-btn ${camOn ? 'active' : 'inactive'}`}
+                        title={camOn ? 'Disable Camera' : 'Enable Camera'}
+                        disabled={false}
                     >
-                        {isCameraEnabled ? <FaVideo size={20} /> : <FaVideoSlash size={20} />}
+                        {camOn ? <FaVideo size={20} /> : <FaVideoSlash size={20} />}
                     </button>
                     <button
-                        onClick={toggleMicrophone}
-                        className={`stream-control-btn ${isMicEnabled ? 'active' : 'inactive'}`}
-                        title={isMicEnabled ? 'Disable Microphone' : 'Enable Microphone'}
+                        onClick={handleMicToggle}
+                        className={`stream-control-btn ${micOn ? 'active' : 'inactive'}`}
+                        title={micOn ? 'Disable Microphone' : 'Enable Microphone'}
+                        disabled={false}
                     >
-                        {isMicEnabled ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
+                        {micOn ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
                     </button>
                 </div>
             </div>
