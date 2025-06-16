@@ -1,0 +1,108 @@
+.recording-list {
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.recording-list h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.recording-list.empty {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.recordings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.recording-item {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.recording-item:hover {
+  transform: translateY(-2px);
+}
+
+.recording-preview {
+  width: 100%;
+  height: auto;
+  display: block;
+  background-color: #000;
+}
+
+.recording-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recording-type {
+  font-weight: 600;
+  color: #333;
+}
+
+.recording-duration {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.recording-date {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.recording-actions {
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.recording-actions button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.download-btn {
+  background-color: #00C851;
+  color: white;
+}
+
+.download-btn:hover {
+  background-color: #007E33;
+}
+
+.delete-btn {
+  background-color: #ff4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #cc0000;
+}
+
+@media (max-width: 768px) {
+  .recordings-grid {
+    grid-template-columns: 1fr;
+  }
+} 

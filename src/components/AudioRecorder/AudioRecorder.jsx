@@ -1,18 +1,21 @@
 import React from 'react';
 import useRecorder from '../../hooks/useRecorder';
 import './AudioRecorder.css';
+import { FaMicrophone, FaMicrophoneSlash, FaPlay, FaPause, FaStop, FaRecordVinyl } from 'react-icons/fa';
 
 const AudioRecorder = () => {
     const {
-        isRecording,
-        recordedBlob,
+        status,
         duration,
         startRecording,
         stopRecording,
         pauseRecording,
         resumeRecording,
-        downloadRecording
-    } = useRecorder('audio');
+        toggleMicrophone,
+        isMicEnabled
+    } = useRecorder();
+
+    console.log('[AudioRecorder] Rendered. Status:', status);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -24,42 +27,60 @@ const AudioRecorder = () => {
         <div className="audio-recorder">
             <h2>Audio Recorder</h2>
 
+            <div className="audio-container">
+                <div className="audio-visualizer">
+                    <div className="visualizer-bars">
+                        {Array.from({ length: 20 }).map((_, i) => (
+                            <div key={i} className="visualizer-bar" />
+                        ))}
+                    </div>
+                </div>
+                <div className="stream-controls">
+                    <button
+                        onClick={toggleMicrophone}
+                        className={`control-btn ${isMicEnabled ? 'active' : 'inactive'}`}
+                        title={isMicEnabled ? 'Disable Microphone' : 'Enable Microphone'}
+                    >
+                        {isMicEnabled ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
+                    </button>
+                </div>
+            </div>
+
             <div className="controls">
-                {!isRecording && !recordedBlob && (
+                {status === 'idle' && (
                     <button onClick={startRecording} className="record-btn">
-                        Start Recording
+                        <FaRecordVinyl style={{ marginRight: 8 }} /> Start Recording
                     </button>
                 )}
 
-                {isRecording && (
-                    <>
+                {status === 'recording' && (
+                    <div className="recording-controls">
                         <button onClick={pauseRecording} className="pause-btn">
-                            Pause
+                            <FaPause style={{ marginRight: 8 }} /> Pause
                         </button>
                         <button onClick={stopRecording} className="stop-btn">
-                            Stop
+                            <FaStop style={{ marginRight: 8 }} /> Stop
                         </button>
-                    </>
+                    </div>
                 )}
 
-                {!isRecording && recordedBlob && (
-                    <>
-                        <audio src={URL.createObjectURL(recordedBlob)} controls />
-                        <button onClick={downloadRecording} className="download-btn">
-                            Download Recording
+                {status === 'paused' && (
+                    <div className="recording-controls">
+                        <button onClick={resumeRecording} className="resume-btn">
+                            <FaPlay style={{ marginRight: 8 }} /> Resume
                         </button>
-                        <button onClick={startRecording} className="record-btn">
-                            New Recording
+                        <button onClick={stopRecording} className="stop-btn">
+                            <FaStop style={{ marginRight: 8 }} /> Stop
                         </button>
-                    </>
+                    </div>
                 )}
             </div>
 
-            {isRecording && (
+            {(status === 'recording' || status === 'paused') && (
                 <div className="recording-info">
                     <div className="recording-indicator">
                         <span className="pulse"></span>
-                        Recording in progress...
+                        {status === 'recording' ? 'Recording in progress...' : 'Recording paused'}
                     </div>
                     <div className="duration">{formatTime(duration)}</div>
                 </div>

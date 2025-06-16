@@ -23,11 +23,46 @@
   position: relative;
 }
 
-.preview-video,
-.recorded-video {
+.preview-video {
   width: 100%;
   height: auto;
   display: block;
+}
+
+.stream-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.control-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-btn:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.control-btn.active {
+  background-color: rgba(0, 200, 81, 0.7);
+}
+
+.control-btn.inactive {
+  background-color: rgba(255, 68, 68, 0.7);
 }
 
 .controls {
@@ -36,6 +71,11 @@
   gap: 1rem;
   align-items: center;
   margin-top: 1.5rem;
+}
+
+.recording-controls {
+  display: flex;
+  gap: 1rem;
 }
 
 button {
@@ -66,6 +106,15 @@ button {
   background-color: #ff8800;
 }
 
+.resume-btn {
+  background-color: #00C851;
+  color: white;
+}
+
+.resume-btn:hover {
+  background-color: #007E33;
+}
+
 .stop-btn {
   background-color: #444444;
   color: white;
@@ -73,15 +122,6 @@ button {
 
 .stop-btn:hover {
   background-color: #222222;
-}
-
-.download-btn {
-  background-color: #00C851;
-  color: white;
-}
-
-.download-btn:hover {
-  background-color: #007E33;
 }
 
 .recording-info {
@@ -128,4 +168,25 @@ button {
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
+}
+
+@media (max-width: 768px) {
+  .video-recorder {
+    padding: 1rem;
+  }
+
+  .stream-controls {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .control-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .recording-controls {
+    flex-direction: column;
+  }
 } 

@@ -13,11 +13,102 @@
   margin-bottom: 2rem;
 }
 
+.audio-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  position: relative;
+  padding: 2rem;
+}
+
+.audio-visualizer {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visualizer-bars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 100%;
+  width: 100%;
+}
+
+.visualizer-bar {
+  width: 4px;
+  height: 20%;
+  background-color: #646cff;
+  border-radius: 2px;
+  animation: visualizer 1s ease-in-out infinite;
+}
+
+.visualizer-bar:nth-child(odd) {
+  animation-delay: 0.5s;
+}
+
+@keyframes visualizer {
+  0%, 100% {
+    height: 20%;
+  }
+  50% {
+    height: 80%;
+  }
+}
+
+.stream-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.control-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-btn:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.control-btn.active {
+  background-color: rgba(0, 200, 81, 0.7);
+}
+
+.control-btn.inactive {
+  background-color: rgba(255, 68, 68, 0.7);
+}
+
 .controls {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   align-items: center;
+  margin-top: 1.5rem;
+}
+
+.recording-controls {
+  display: flex;
+  gap: 1rem;
 }
 
 button {
@@ -48,6 +139,15 @@ button {
   background-color: #ff8800;
 }
 
+.resume-btn {
+  background-color: #00C851;
+  color: white;
+}
+
+.resume-btn:hover {
+  background-color: #007E33;
+}
+
 .stop-btn {
   background-color: #444444;
   color: white;
@@ -57,17 +157,8 @@ button {
   background-color: #222222;
 }
 
-.download-btn {
-  background-color: #00C851;
-  color: white;
-}
-
-.download-btn:hover {
-  background-color: #007E33;
-}
-
 .recording-info {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   text-align: center;
 }
 
@@ -110,6 +201,31 @@ button {
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
+}
+
+@media (max-width: 768px) {
+  .audio-recorder {
+    padding: 1rem;
+  }
+
+  .audio-container {
+    padding: 1rem;
+  }
+
+  .stream-controls {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .control-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .recording-controls {
+    flex-direction: column;
+  }
 }
 
 audio {

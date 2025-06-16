@@ -1,103 +1,208 @@
-import { useState, useRef, useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
+import { useRecordings } from '../contexts/RecordingsContext';
+import {
+    getMediaConstraints,
+    handleMediaError,
+    createRecordingObject,
+    checkMediaSupport,
+} from '../utils/recordingUtils';
 
-const useRecorder = (type = 'audio') => {
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordedBlob, setRecordedBlob] = useState(null);
-    const [duration, setDuration] = useState(0);
+const useRecorder = () => {
+    const {
+        recordingType,
+        status,
+        dispatch,
+        duration,
+    } = useRecordings();
+
     const mediaRecorderRef = useRef(null);
     const streamRef = useRef(null);
     const chunksRef = useRef([]);
     const timerRef = useRef(null);
     const startTimeRef = useRef(null);
+    const isCameraEnabledRef = useRef(true);
+    const isMicEnabledRef = useRef(true);
 
+    // Ensure media support on mount
+    useEffect(() => {
+        const { supported, error } = checkMediaSupport();
+        if (!supported) {
+            console.error('Media recording not supported:', error);
+            dispatch({ type: 'SET_ERROR', payload: error });
+        }
+    }, [dispatch]);
+
+    // Toggle camera
+    const toggleCamera = useCallback(() => {
+        if (!streamRef.current) return;
+        const videoTrack = streamRef.current.getVideoTracks()[0];
+        if (videoTrack) {
+            isCameraEnabledRef.current = !isCameraEnabledRef.current;
+            videoTrack.enabled = isCameraEnabledRef.current;
+            console.log(`Camera ${isCameraEnabledRef.current ? 'enabled' : 'disabled'}`);
+        }
+    }, []);
+
+    // Toggle microphone
+    const toggleMicrophone = useCallback(() => {
+        if (!streamRef.current) return;
+        const audioTrack = streamRef.current.getAudioTracks()[0];
+        if (audioTrack) {
+            isMicEnabledRef.current = !isMicEnabledRef.current;
+            audioTrack.enabled = isMicEnabledRef.current;
+            console.log(`Microphone ${isMicEnabledRef.current ? 'enabled' : 'disabled'}`);
+        }
+    }, []);
+
+    // Start recording
     const startRecording = useCallback(async () => {
         try {
-            const constraints = type === 'audio'
-                ? { audio: true }
-                : { audio: true, video: true };
+            console.log('Starting recording...');
+            // Clean up any previous stream
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current = null;
+            }
+            if (mediaRecorderRef.current) {
+                mediaRecorderRef.current = null;
+            }
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            chunksRef.current = [];
+            isCameraEnabledRef.current = true;
+            isMicEnabledRef.current = true;
 
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            const stream = await navigator.mediaDevices.getUserMedia(
+                getMediaConstraints(recordingType)
+            );
             streamRef.current = stream;
-
             const mediaRecorder = new MediaRecorder(stream);
             mediaRecorderRef.current = mediaRecorder;
-            chunksRef.current = [];
 
             mediaRecorder.ondataavailable = (e) => {
                 if (e.data.size > 0) {
                     chunksRef.current.push(e.data);
+                    console.log('Recording chunk received:', e.data.size, 'bytes');
                 }
             };
 
             mediaRecorder.onstop = () => {
+                console.log('Recording stopped, processing data...');
                 const blob = new Blob(chunksRef.current, {
-                    type: type === 'audio' ? 'audio/webm' : 'video/webm'
+                    type: recordingType === 'audio' ? 'audio/webm' : 'video/webm',
                 });
-                setRecordedBlob(blob);
-                setDuration(0);
+                const recording = createRecordingObject(blob, recordingType);
+                recording.duration = duration;
+                dispatch({ type: 'STOP_RECORDING', payload: recording });
                 clearInterval(timerRef.current);
+                timerRef.current = null;
             };
 
             mediaRecorder.start();
-            setIsRecording(true);
+            console.log('MediaRecorder started');
+            dispatch({ type: 'START_RECORDING' });
             startTimeRef.current = Date.now();
 
-            // Start timer
             timerRef.current = setInterval(() => {
-                setDuration(Math.floor((Date.now() - startTimeRef.current) / 1000));
+                const newDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                dispatch({ type: 'UPDATE_DURATION', payload: newDuration });
             }, 1000);
-
         } catch (error) {
-            console.error('Error accessing media devices:', error);
-            throw error;
+            console.error('Error starting recording:', error);
+            const errorDetails = handleMediaError(error);
+            dispatch({ type: 'SET_ERROR', payload: errorDetails });
         }
-    }, [type]);
+    }, [recordingType, dispatch, duration]);
 
+    // Stop recording
     const stopRecording = useCallback(() => {
-        if (mediaRecorderRef.current && isRecording) {
+        if (mediaRecorderRef.current && (status === 'recording' || status === 'paused')) {
+            console.log('Stopping recording...');
             mediaRecorderRef.current.stop();
-            streamRef.current.getTracks().forEach(track => track.stop());
-            setIsRecording(false);
+            // Tracks will be stopped in cleanup
         }
-    }, [isRecording]);
+    }, [status]);
 
+    // Pause recording
     const pauseRecording = useCallback(() => {
-        if (mediaRecorderRef.current && isRecording) {
+        if (mediaRecorderRef.current && status === 'recording') {
+            console.log('Pausing recording...');
             mediaRecorderRef.current.pause();
-            setIsRecording(false);
+            dispatch({ type: 'PAUSE_RECORDING' });
         }
-    }, [isRecording]);
+    }, [status, dispatch]);
 
+    // Resume recording
     const resumeRecording = useCallback(() => {
-        if (mediaRecorderRef.current && !isRecording) {
+        if (mediaRecorderRef.current && status === 'paused') {
+            console.log('Resuming recording...');
             mediaRecorderRef.current.resume();
-            setIsRecording(true);
+            dispatch({ type: 'RESUME_RECORDING' });
         }
-    }, [isRecording]);
+    }, [status, dispatch]);
 
-    const downloadRecording = useCallback(() => {
-        if (recordedBlob) {
-            const url = URL.createObjectURL(recordedBlob);
+    // Download recording
+    const downloadRecording = useCallback((recording) => {
+        if (recording?.blob) {
+            console.log('Downloading recording:', recording);
+            const url = URL.createObjectURL(recording.blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `recording-${new Date().toISOString()}.${type === 'audio' ? 'webm' : 'webm'}`;
+            a.download = `recording-${recording.id}.${recording.type === 'audio' ? 'webm' : 'webm'}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-    }, [recordedBlob, type]);
+    }, []);
+
+    // Delete recording
+    const deleteRecording = useCallback((index) => {
+        console.log('Deleting recording at index:', index);
+        dispatch({ type: 'DELETE_RECORDING', payload: index });
+    }, [dispatch]);
+
+    // Cleanup on unmount only
+    useEffect(() => {
+        return () => {
+            console.log('Cleaning up recorder...');
+            if (mediaRecorderRef.current) {
+                if (mediaRecorderRef.current.state !== 'inactive') {
+                    mediaRecorderRef.current.stop();
+                }
+                mediaRecorderRef.current = null;
+            }
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => {
+                    track.stop();
+                    console.log('Media track stopped during cleanup:', track.kind);
+                });
+                streamRef.current = null;
+            }
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            chunksRef.current = [];
+        };
+    }, []);
 
     return {
-        isRecording,
-        recordedBlob,
+        status,
         duration,
         startRecording,
         stopRecording,
         pauseRecording,
         resumeRecording,
         downloadRecording,
-        stream: streamRef.current
+        deleteRecording,
+        toggleCamera,
+        toggleMicrophone,
+        isCameraEnabled: isCameraEnabledRef.current,
+        isMicEnabled: isMicEnabledRef.current,
+        stream: streamRef.current,
     };
 };
 
