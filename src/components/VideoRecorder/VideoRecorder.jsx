@@ -49,14 +49,14 @@ const VideoRecorder = () => {
                 <div className="stream-controls">
                     <button
                         onClick={toggleCamera}
-                        className={`control-btn ${isCameraEnabled ? 'active' : 'inactive'}`}
+                        className={`stream-control-btn ${isCameraEnabled ? 'active' : 'inactive'}`}
                         title={isCameraEnabled ? 'Disable Camera' : 'Enable Camera'}
                     >
                         {isCameraEnabled ? <FaVideo size={20} /> : <FaVideoSlash size={20} />}
                     </button>
                     <button
                         onClick={toggleMicrophone}
-                        className={`control-btn ${isMicEnabled ? 'active' : 'inactive'}`}
+                        className={`stream-control-btn ${isMicEnabled ? 'active' : 'inactive'}`}
                         title={isMicEnabled ? 'Disable Microphone' : 'Enable Microphone'}
                     >
                         {isMicEnabled ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}

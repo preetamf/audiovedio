@@ -38,7 +38,7 @@ const AudioRecorder = () => {
                 <div className="stream-controls">
                     <button
                         onClick={toggleMicrophone}
-                        className={`control-btn ${isMicEnabled ? 'active' : 'inactive'}`}
+                        className={`stream-control-btn ${isMicEnabled ? 'active' : 'inactive'}`}
                         title={isMicEnabled ? 'Disable Microphone' : 'Enable Microphone'}
                     >
                         {isMicEnabled ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}

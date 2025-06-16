@@ -38,31 +38,34 @@
   z-index: 10;
 }
 
-.control-btn {
+.stream-control-btn {
   width: 40px;
   height: 40px;
+  padding: 0;
   border-radius: 50%;
   border: none;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  font-size: 1.2rem;
+  background-color: #646cff;
+  color: #fff;
+  font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 1;
+  transition: opacity 0.2s;
 }
 
-.control-btn:hover {
-  background-color: rgba(0, 0, 0, 0.7);
+.stream-control-btn svg {
+  color: #fff;
+  font-size: 1.5rem;
 }
 
-.control-btn.active {
-  background-color: rgba(0, 200, 81, 0.7);
+.stream-control-btn.active {
+  opacity: 1;
 }
 
-.control-btn.inactive {
-  background-color: rgba(255, 68, 68, 0.7);
+.stream-control-btn.inactive {
+  opacity: 0.4;
 }
 
 .controls {
@@ -180,7 +183,7 @@ button {
     right: 0.5rem;
   }
 
-  .control-btn {
+  .stream-control-btn {
     width: 36px;
     height: 36px;
     font-size: 1rem;
